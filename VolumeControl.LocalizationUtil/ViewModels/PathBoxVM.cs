@@ -1,213 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Media;
 using VolumeControl.LocalizationUtil.Helpers.Collections;
 
 namespace VolumeControl.LocalizationUtil.ViewModels
 {
-    public static class TreeViewExtensions
-    {
-        /// <summary>
-        /// Recursively search for an item in this subtree.
-        /// </summary>
-        /// <param name="container">
-        /// The parent ItemsControl. This can be a TreeView or a TreeViewItem.
-        /// </param>
-        /// <param name="item">
-        /// The item to search for.
-        /// </param>
-        /// <returns>
-        /// The TreeViewItem that contains the specified item.
-        /// </returns>
-        public static TreeViewItem GetTreeViewItem(ItemsControl container, object item)
-        {
-            if (container != null)
-            {
-                if (container.DataContext == item)
-                {
-                    return container as TreeViewItem;
-                }
-
-                // Expand the current container
-                if (container is TreeViewItem && !((TreeViewItem)container).IsExpanded)
-                {
-                    container.SetValue(TreeViewItem.IsExpandedProperty, true);
-                }
-
-                // Try to generate the ItemsPresenter and the ItemsPanel.
-                // by calling ApplyTemplate.  Note that in the
-                // virtualizing case even if the item is marked
-                // expanded we still need to do this step in order to
-                // regenerate the visuals because they may have been virtualized away.
-
-                container.ApplyTemplate();
-                ItemsPresenter itemsPresenter =
-                    (ItemsPresenter)container.Template.FindName("ItemsHost", container);
-                if (itemsPresenter != null)
-                {
-                    itemsPresenter.ApplyTemplate();
-                }
-                else
-                {
-                    // The Tree template has not named the ItemsPresenter,
-                    // so walk the descendents and find the child.
-                    itemsPresenter = FindVisualChild<ItemsPresenter>(container);
-                    if (itemsPresenter == null)
-                    {
-                        container.UpdateLayout();
-
-                        itemsPresenter = FindVisualChild<ItemsPresenter>(container);
-                    }
-                }
-
-                Panel itemsHostPanel = (Panel)VisualTreeHelper.GetChild(itemsPresenter, 0);
-
-                // Ensure that the generator for this panel has been created.
-                UIElementCollection children = itemsHostPanel.Children;
-
-                VirtualizingStackPanel virtualizingPanel =
-                    itemsHostPanel as VirtualizingStackPanel;
-
-                for (int i = 0, count = container.Items.Count; i < count; i++)
-                {
-                    TreeViewItem subContainer;
-                    if (virtualizingPanel != null)
-                    {
-                        // Bring the item into view so
-                        // that the container will be generated.
-                        virtualizingPanel.BringIntoView();
-
-                        subContainer =
-                            (TreeViewItem)container.ItemContainerGenerator.
-                            ContainerFromIndex(i);
-                    }
-                    else
-                    {
-                        subContainer =
-                            (TreeViewItem)container.ItemContainerGenerator.
-                            ContainerFromIndex(i);
-
-                        // Bring the item into view to maintain the
-                        // same behavior as with a virtualizing panel.
-                        subContainer.BringIntoView();
-                    }
-
-                    if (subContainer != null)
-                    {
-                        // Search the next level for the object.
-                        TreeViewItem resultContainer = GetTreeViewItem(subContainer, item);
-                        if (resultContainer != null)
-                        {
-                            return resultContainer;
-                        }
-                        else
-                        {
-                            // The object is not under this TreeViewItem
-                            // so collapse it.
-                            subContainer.IsExpanded = false;
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Search for an element of a certain type in the visual tree.
-        /// </summary>
-        /// <typeparam name="T">The type of element to find.</typeparam>
-        /// <param name="visual">The parent element.</param>
-        /// <returns></returns>
-        private static T FindVisualChild<T>(Visual visual) where T : Visual
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(visual); i++)
-            {
-                Visual child = (Visual)VisualTreeHelper.GetChild(visual, i);
-                if (child != null)
-                {
-                    T correctlyTyped = child as T;
-                    if (correctlyTyped != null)
-                    {
-                        return correctlyTyped;
-                    }
-
-                    T descendent = FindVisualChild<T>(child);
-                    if (descendent != null)
-                    {
-                        return descendent;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public static void SelectTreeViewItem(this TreeView treeView, object itemToSelect)
-        {
-            TreeViewItem item = FindTreeViewItem(treeView, itemToSelect);
-            if (item != null)
-            {
-                item.IsSelected = true;
-            }
-        }
-
-        private static TreeViewItem FindTreeViewItem(ItemsControl parent, object itemToFind)
-        {
-            if (parent == null) return null;
-
-            // Check if the current item is a match
-            if (parent.DataContext == itemToFind)
-            {
-                return parent as TreeViewItem;
-            }
-
-            // Search the children
-            TreeViewItem result = null;
-            for (int i = 0; i < parent.Items.Count; i++)
-            {
-                var childItem = parent.ItemContainerGenerator.ContainerFromIndex(i) as TreeViewItem;
-                result = FindTreeViewItem(childItem, itemToFind);
-                if (result != null)
-                {
-                    break;
-                }
-            }
-
-            return result;
-        }
-    }
     public class PathBoxVM : INotifyPropertyChanged
     {
-        public void AttachToMainWindow(MainWindow mainWindow)
-        {
-            if (_isAttachedToWindow)
-                throw new InvalidOperationException("Already attached to main window!");
-            _isAttachedToWindow = true;
-
-            MainWindow = mainWindow;
-            TreeView.SelectedItemChanged += TreeView_SelectedItemChanged;
-
-            MainWindow.PathBox.SetBinding(TextBox.TextProperty, new Binding($"{nameof(MainWindowVM.PathBoxVM)}.{nameof(CurrentPath)}")
-            {
-                Mode = BindingMode.TwoWay,
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus,
-            });
-        }
-
+        #region Fields
         private bool _isSettingPath = false;
         private bool _isAttachedToWindow = false;
         private MainWindow MainWindow = null!;
+        #endregion Fields
 
+        #region Properties
         private MainWindowVM MainWindowVM => MainWindow.VM;
         private TreeView TreeView => MainWindow.TreeView;
         private ObservableImmutableList<TranslationConfigVM> TranslationConfigs => MainWindowVM.TranslationConfigs;
@@ -227,11 +37,32 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             }
         }
         private string _currentPath = string.Empty;
+        #endregion Properties
 
         #region Events
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new(propertyName));
         #endregion Events
+
+        #region Methods
+
+        #region AttachToMainWindow
+        public void AttachToMainWindow(MainWindow mainWindow)
+        {
+            if (_isAttachedToWindow)
+                throw new InvalidOperationException("Already attached to main window!");
+            _isAttachedToWindow = true;
+
+            MainWindow = mainWindow;
+            TreeView.SelectedItemChanged += TreeView_SelectedItemChanged;
+
+            MainWindow.PathBox.SetBinding(TextBox.TextProperty, new Binding($"{nameof(MainWindowVM.PathBoxVM)}.{nameof(CurrentPath)}")
+            {
+                Mode = BindingMode.TwoWay,
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus,
+            });
+        }
+        #endregion AttachToMainWindow
 
         internal void DeselectAll(IEnumerable<TreeViewNodeVM> nodes, bool recurse = true)
         {
@@ -256,6 +87,8 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         }
         internal void CollapseAll(IEnumerable<TreeViewNodeVM> nodes, bool recurse = false)
         {
+            // this method doesn't work correctly
+
             foreach (var node in nodes)
             {
                 if (recurse)
@@ -277,6 +110,9 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         }
         private void SetNodeFromPath(string path)
         {
+            // this has a bug where you can only successfully set the selected node when its tree hasn't been opened yet.
+            //  the treeview is undoing the changes after this method returns.
+
             if (path == null || path.Length == 0 || TreeView.Items.Count == 0)
                 return;
 
@@ -350,6 +186,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
                 else break;
             }
         }
+        #endregion Methods
 
         #region EventHandlers
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

@@ -106,6 +106,7 @@
                 Margin="5,3,5,1"
                 Padding="4,1.3" />
 
+            <!--  NAVIGATOR  -->
             <TreeView
                 x:Name="TreeView"
                 Grid.Row="1"
@@ -120,7 +121,7 @@
 
                         <Style.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="FontWeight" Value="Bold" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
                                 <Setter Property="Background" Value="{StaticResource SelectionBackground}" />
                             </Trigger>
                             <Trigger Property="IsExpanded" Value="True">
@@ -135,6 +136,18 @@
                     </HierarchicalDataTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type vm:JsonObjectVM}" ItemsSource="{Binding SubNodes}">
                         <Grid>
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem
+                                        Command="{Binding CreateNewSubNodeCommand, Source={StaticResource VM}}"
+                                        CommandParameter="{Binding}"
+                                        Header="New SubNode..." />
+                                    <MenuItem
+                                        Command="{Binding DeleteNodeCommand, Source={StaticResource VM}}"
+                                        CommandParameter="{Binding}"
+                                        Header="Delete Node" />
+                                </ContextMenu>
+                            </Grid.ContextMenu>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
@@ -176,6 +189,7 @@
                 BorderBrush="Black"
                 BorderThickness="1" />
 
+            <!--  EDITOR  -->
             <Grid
                 Grid.Row="1"
                 Grid.Column="2"
@@ -189,110 +203,142 @@
                         HorizontalAlignment="Stretch"
                         Content="{Binding SelectedItem, ElementName=TreeView}">
                         <ContentControl.Resources>
+                            <!--  TranslationConfigVM Editor Template  -->
                             <DataTemplate DataType="{x:Type vm:TranslationConfigVM}">
-                                <DockPanel>
-                                    <Grid VerticalAlignment="Top" DockPanel.Dock="Top">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
-
-                                        <TextBlock Margin="5,3">
-                                            <Run FontWeight="Bold" Text="(Config)" />
-                                            <Run Text="{Binding OriginalFilePath, Mode=OneWay}" />
-                                        </TextBlock>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
 
                                         <TextBlock
+                                            Margin="5,3"
+                                            VerticalAlignment="Center"
+                                            FontWeight="Bold"
+                                            Text="(Config)" />
+                                        <StackPanel
+                                            Grid.Column="1"
+                                            Margin="5,3"
+                                            Orientation="Horizontal">
+                                            <TextBox
+                                                x:Name="ConfigLocaleIDTextBox"
+                                                Margin="0,1,1,1"
+                                                MaxLength="2"
+                                                PreviewKeyDown="ConfigLocaleIDTextBox_PreviewKeyDown"
+                                                Text="{Binding LocaleID, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Margin="1,1,0,1"
+                                                VerticalAlignment="Center"
+                                                Text=".loc.json" />
+                                        </StackPanel>
+
+                                        <!--  FilePath  -->
+                                        <TextBlock
                                             Grid.Row="1"
+                                            Grid.ColumnSpan="2"
                                             Margin="5,3"
                                             Visibility="{Binding IsFromActualFile, Converter={StaticResource BoolToVisConverter}}">
                                             <Run FontWeight="SemiBold" Text="Location:" />
                                             <Run Text="{Binding DirectoryPath, Mode=OneWay}" />
                                         </TextBlock>
 
-                                        <Grid Grid.Row="2">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock
-                                                Margin="5,3"
-                                                VerticalAlignment="Center"
-                                                Text="FileName:" />
-                                            <TextBox
-                                                Grid.Column="1"
-                                                Width="20"
-                                                Margin="5,3"
-                                                Text="{Binding FileNameLanguageCode}" />
-                                            <TextBlock
-                                                Grid.Column="2"
-                                                VerticalAlignment="Center"
-                                                Text=".loc.json" />
-                                        </Grid>
-
-                                        <Grid Grid.Row="3">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition />
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition />
-                                                <RowDefinition />
-                                            </Grid.RowDefinitions>
-
-                                            <TextBlock
-                                                Margin="5,3"
-                                                VerticalAlignment="Center"
-                                                Text="Language ID" />
-                                            <TextBox
-                                                Grid.Column="1"
-                                                Margin="5,3"
-                                                Text="{Binding LanguageID}" />
-                                            <TextBlock
-                                                Grid.Row="1"
-                                                Margin="5,3"
-                                                VerticalAlignment="Center"
-                                                Text="Language Name" />
-                                            <TextBox
-                                                Grid.Row="1"
-                                                Grid.Column="1"
-                                                Margin="5,3"
-                                                Text="{Binding LanguageName}" />
-                                        </Grid>
+                                        <TextBlock
+                                            Grid.Row="2"
+                                            Margin="5,3"
+                                            VerticalAlignment="Center"
+                                            Text="Language ID:" />
+                                        <TextBox
+                                            Grid.Row="2"
+                                            Grid.Column="1"
+                                            Margin="5,3"
+                                            Text="{Binding LanguageName}" />
+                                        <TextBlock
+                                            Grid.Row="3"
+                                            Margin="5,3"
+                                            VerticalAlignment="Center"
+                                            Text="Display Name:" />
+                                        <TextBox
+                                            Grid.Row="3"
+                                            Grid.Column="1"
+                                            Margin="5,3"
+                                            Text="{Binding LanguageDisplayName}" />
                                     </Grid>
                                     <Grid
-                                        Height="30"
+                                        Grid.Row="1"
                                         VerticalAlignment="Bottom"
-                                        DockPanel.Dock="Bottom"
-                                        IsEnabled="{Binding IsFromActualFile}">
+                                        DockPanel.Dock="Bottom">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition />
                                             <ColumnDefinition />
                                         </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+
+                                        <CheckBox
+                                            Margin="5,3"
+                                            Content="Human Readable Output"
+                                            IsChecked="{Binding IndentOutput}"
+                                            ToolTip="Whether to use multiple lines &amp; indentation in the JSON file. When unchecked, the JSON output will be serialized." />
+
+                                        <Grid Grid.Row="1" Grid.ColumnSpan="2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBox
+                                                x:Name="NewFilePathTextBox"
+                                                Margin="5,3"
+                                                Text="{Binding NewFilePath, Mode=TwoWay}" />
+                                            <Button
+                                                x:Name="SaveToNewFilePathButton"
+                                                Grid.Column="1"
+                                                Margin="5,3"
+                                                Padding="6,1"
+                                                Click="SaveToNewFilePathButton_Click"
+                                                Content="Save" />
+                                        </Grid>
 
                                         <Button
                                             x:Name="ConfigSaveButton"
+                                            Grid.Row="2"
                                             Margin="5,3"
                                             Click="ConfigSaveButton_Click"
-                                            Content="Save" />
+                                            Content="Save (Overwrite)"
+                                            IsEnabled="{Binding IsFromActualFile}" />
                                         <Button
                                             x:Name="ConfigLoadButton"
+                                            Grid.Row="2"
                                             Grid.Column="1"
                                             Margin="5,3"
                                             Click="ConfigLoadButton_Click"
-                                            Content="Load" />
+                                            Content="Reload"
+                                            IsEnabled="{Binding IsFromActualFile}" />
                                     </Grid>
-                                </DockPanel>
+                                </Grid>
                             </DataTemplate>
+                            <!--  JsonValueVM Editor Template  -->
                             <DataTemplate DataType="{x:Type vm:JsonValueVM}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock
@@ -305,8 +351,16 @@
                                         Padding="3,1"
                                         VerticalAlignment="Center"
                                         Text="{Binding Content}" />
+                                    <Button
+                                        x:Name="RemoveValueButton"
+                                        Grid.Column="2"
+                                        Margin="5,3"
+                                        Command="{Binding DeleteValueCommand, Source={StaticResource VM}}"
+                                        CommandParameter="{Binding}"
+                                        Content="❌" />
                                 </Grid>
                             </DataTemplate>
+                            <!--  JsonObjectVM Editor Template  -->
                             <DataTemplate DataType="{x:Type vm:JsonObjectVM}">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -314,10 +368,22 @@
                                         <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Margin="5,3">
-                                        <Run FontWeight="Bold" Text="(Object)" />
-                                        <Run Text="{Binding Name, Mode=OneWay}" />
-                                    </TextBlock>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            Margin="5,3"
+                                            VerticalAlignment="Center"
+                                            FontWeight="Bold"
+                                            Text="(Object)" />
+                                        <TextBox
+                                            Grid.Column="1"
+                                            Margin="5,3"
+                                            Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                    </Grid>
 
                                     <ListBox
                                         x:Name="ValueEditorListBox"
@@ -349,11 +415,24 @@
                                             </Style>
                                         </ListBox.ItemContainerStyle>
                                     </ListBox>
-                                    <TextBlock
+                                    <Grid
                                         Grid.Row="1"
-                                        Margin="10"
-                                        Text="(none)"
-                                        Visibility="{Binding HasItems, ElementName=ValueEditorListBox, Converter={StaticResource InvertedBoolToVisConverter}}" />
+                                        VerticalAlignment="Top"
+                                        Visibility="{Binding HasItems, ElementName=ValueEditorListBox, Converter={StaticResource InvertedBoolToVisConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBox Margin="5,3" Text="{Binding NewValueContent, Source={StaticResource VM}, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Margin="5,3"
+                                            Padding="6,1"
+                                            Command="{Binding CreateNewValueCommand, Source={StaticResource VM}}"
+                                            CommandParameter="{Binding}"
+                                            Content="Add" />
+                                    </Grid>
                                 </Grid>
                             </DataTemplate>
                         </ContentControl.Resources>

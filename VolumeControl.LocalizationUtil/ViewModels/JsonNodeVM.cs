@@ -3,58 +3,20 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
 using VolumeControl.LocalizationUtil.Helpers.Collections;
+using VolumeControl.LocalizationUtil.JsonConverters;
 using VolumeControl.Log;
 
 namespace VolumeControl.LocalizationUtil.ViewModels
 {
-    public abstract class TreeViewNodeVM : INotifyPropertyChanged
-    {
-        #region Constructor
-        protected TreeViewNodeVM(TreeViewNodeVM? parent)
-        {
-            ParentTreeViewNode = parent;
-        }
-        #endregion Constructor
-
-        #region Properties
-        public TreeViewNodeVM? ParentTreeViewNode { get; }
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set
-            {
-                if (value == _isSelected) return;
-
-                _isSelected = value;
-                NotifyPropertyChanged();
-            }
-        }
-        private bool _isSelected;
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set
-            {
-                if (value == _isExpanded) return;
-
-                _isExpanded = value;
-                NotifyPropertyChanged();
-            }
-        }
-        private bool _isExpanded;
-        #endregion Properties
-
-        #region Events
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new(propertyName));
-        #endregion Events
-    }
+    [DebuggerDisplay("Name = {Name}")]
+    [JsonConverter(typeof(JsonNodeJsonConverter))]
     public abstract class JsonNodeVM : TreeViewNodeVM, INotifyPropertyChanged
     {
         #region Constructor
@@ -96,10 +58,8 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         #endregion Fields
 
         #region Properties
-        public JToken JToken => _token;
         public TranslationConfigVM Owner { get; }
         public JsonNodeVM? Parent { get; }
-        public JTokenType Type => _token.Type;
         public string? Name { get; set; }
         #endregion Properties
 
@@ -179,19 +139,28 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             }
             return null;
         }
+        public abstract JProperty ToJProperty();
         #endregion Methods
     }
+    [DebuggerDisplay("Name = {Name}, Values = {Values.Count}, SubNodes = {SubNodes.Count}")]
     public class JsonObjectVM : JsonNodeVM
     {
         #region Constructor
         public JsonObjectVM(JsonNodeVM parent, string name, JObject jObject) : base(parent, name, jObject)
         {
-            Initialize();
+            foreach (var (key, value) in jObject)
+            {
+                AddNode(CreateNode(key, value));
+            }
         }
         private JsonObjectVM(TranslationConfigVM owner, JObject jsonRootObject) : base(owner, jsonRootObject)
         { // creates a root node
-            Initialize();
+            foreach (var (key, value) in jsonRootObject)
+            {
+                AddNode(CreateNode(key, value));
+            }
         }
+        private JsonObjectVM(TranslationConfigVM owner) : base(owner, null!) { }
         #endregion Constructor
 
         #region Properties
@@ -201,6 +170,16 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         #endregion Properties
 
         #region Methods
+
+        #region CreateRootNode
+        public static JsonObjectVM CreateRootNode(TranslationConfigVM owner, JToken jToken)
+            => new(owner, (JObject)jToken);
+        #endregion CreateRootNode
+
+        #region CreateEmptyRootNode
+        public static JsonObjectVM CreateEmptyRootNode(TranslationConfigVM owner)
+            => new(owner);
+        #endregion CreateEmptyRootNode
 
         #region AddNode
         public void AddNode(JsonNodeVM node)
@@ -216,54 +195,82 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         }
         #endregion AddNode
 
-        internal IEnumerable<(string, JToken)> GetTokenPairs()
+        #region CreateSubNode
+        public JsonObjectVM CreateSubNode(string name)
         {
-            List<(string, JToken)> l = new();
-
-            bool hasSubNodes = SubNodes.Count > 0;
-            if (hasSubNodes && Values.Count > 0)
-            {
-                // TODO: LOG ERROR & CONTINUE
-            }
-
-            if (hasSubNodes)
-            { // subnodes only
-                foreach (JsonObjectVM objectVM in SubNodes)
-                {
-                    JObject jObject = new();
-                    foreach (var (key, token) in objectVM.GetTokenPairs()) //< RECURSE
-                    {
-                        jObject.Add(key, token);
-                    }
-                    l.Add((objectVM.Name!, jObject));
-                }
-            }
-            else
-            { // values only
-                foreach (var value in Values)
-                {
-                    if (value is JsonValueVM valueVM)
-                    {
-                        l.Add((valueVM.Name!, new JValue(valueVM.Content)));
-                    }
-                    else
-                    {
-                        FLog.Warning($"Skipping invalid node \"{value.JToken.Path}\"");
-                    }
-                }
-            }
-
-            return l;
+            var objectVM = new JsonObjectVM(this, name, new());
+            SubNodes.Add(objectVM);
+            return objectVM;
         }
-        private void Initialize()
+        #endregion CreateSubNode
+
+        #region RemoveSubNode
+        public void RemoveSubNode(int subNodeIndex)
         {
-            foreach (var (key, value) in JObject)
-            {
-                AddNode(CreateNode(key, value));
-            }
+            if (subNodeIndex < 0 || subNodeIndex >= SubNodes.Count)
+                throw new ArgumentOutOfRangeException(nameof(subNodeIndex), subNodeIndex, $"The specified index {subNodeIndex} does not exist! Expected an index in range: (0 >= x < {SubNodes.Count - 1})");
+
+            SubNodes.RemoveAt(subNodeIndex);
         }
-        public static JsonObjectVM CreateRootNode(TranslationConfigVM owner, JToken jToken)
-            => new(owner, (JObject)jToken);
+        public void RemoveSubNode(JsonObjectVM subNode)
+        {
+            ArgumentNullException.ThrowIfNull(subNode, nameof(subNode));
+
+            var index = SubNodes.IndexOf(subNode);
+
+            if (index == -1)
+                throw new InvalidOperationException($"The specified sub node \"{subNode.Name}\" is not a child of this node \"{Name}\"!");
+
+            RemoveSubNode(index);
+        }
+        public void RemoveSubNode(string subNodeName, StringComparison stringComparison = StringComparison.Ordinal)
+        {
+            var subNode = FindSubNodeWithName(subNodeName, stringComparison);
+            
+            if (subNode == null)
+                throw new InvalidOperationException($"The specified sub node \"{subNodeName}\" is not a child of this node \"{Name}\"!");
+
+            RemoveSubNode(subNode);
+        }
+        #endregion RemoveSubNode
+
+        #region TryRemoveSubNode
+        public bool TryRemoveSubNode(int subNodeIndex)
+        {
+            if (subNodeIndex < 0 || subNodeIndex >= SubNodes.Count)
+                return false;
+            SubNodes.RemoveAt(subNodeIndex);
+            return true;
+        }
+        public bool TryRemoveSubNode(JsonObjectVM subNode)
+        {
+            var index = SubNodes.IndexOf(subNode);
+
+            if (index == -1) return false;
+
+            return TryRemoveSubNode(index);
+        }
+        public bool TryRemoveSubNode(string subNodeName, StringComparison stringComparison = StringComparison.Ordinal)
+        {
+            var subNode = FindSubNodeWithName(subNodeName, stringComparison);
+
+            if (subNode == null) return false;
+
+            return TryRemoveSubNode(subNode);
+        }
+        #endregion TryRemoveSubNode
+
+        #region CreateValue
+        public JsonValueVM CreateValue(string content)
+        {
+            var valueVM = new JsonValueVM(this, Owner.LanguageName, content);
+            Values.Add(valueVM);
+            return valueVM;
+        }
+        public JsonValueVM CreateValue() => CreateValue(string.Empty);
+        #endregion CreateValue
+
+        #region FindValueWithName
         public JsonNodeVM? FindValueWithName(string name, StringComparison stringComparison = StringComparison.Ordinal)
         {
             foreach (var value in Values)
@@ -275,6 +282,9 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             }
             return null;
         }
+        #endregion FindValueWithName
+
+        #region FindSubNodeWithName
         public JsonObjectVM? FindSubNodeWithName(string name, StringComparison stringComparison = StringComparison.Ordinal)
         {
             foreach (var subNode in SubNodes)
@@ -286,8 +296,36 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             }
             return null;
         }
+        #endregion FindSubNodeWithName
+
+        #region ToJObject
+        /// <summary>
+        /// Creates a new <see cref="Newtonsoft.Json.Linq.JObject"/> instance containing the current state of this <see cref="JsonObjectVM"/> instance.
+        /// </summary>
+        public JObject ToJObject()
+        {
+            JObject jObject = new();
+
+            foreach (var valueVM in Values)
+            {
+                jObject.Add(((JsonValueVM)valueVM).ToJProperty());
+            }
+            foreach (var subNode in SubNodes)
+            {
+                jObject.Add(subNode.ToJProperty()); //< RECURSE
+            }
+
+            return jObject;
+        }
+        #endregion ToJObject
+
+        #region ToJProperty
+        public override JProperty ToJProperty() => !IsRootNode ? new JProperty(Name!, ToJObject()) : throw new InvalidOperationException("Cannot serialize the root node as a JSON Property!");
+        #endregion ToJProperty
+
         #endregion Methods
     }
+    [DebuggerDisplay("\"{Name}\": \"{Content}\"")]
     public class JsonValueVM : JsonNodeVM
     {
         #region Constructors
@@ -314,6 +352,13 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         }
         private string? _content;
         #endregion Properties
+
+        #region ToJProperty
+        /// <summary>
+        /// Creates a new <see cref="JProperty"/> instance containing the current state of this <see cref="JsonValueVM"/> instance.
+        /// </summary>
+        public override JProperty ToJProperty() => new(Name!, Content);
+        #endregion ToJProperty
     }
     public class JsonErrorVM : JsonNodeVM
     {
@@ -322,7 +367,11 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         {
         }
         #endregion Constructor
+
+        public override JProperty ToJProperty() => throw new NotImplementedException();
     }
+    [DebuggerDisplay("FileName = {FileName}, Path = {OriginalFilePath}")]
+    [JsonConverter(typeof(TranslationConfigJsonConverter))]
     public class TranslationConfigVM : TreeViewNodeVM, INotifyPropertyChanged
     {
         #region Constructor
@@ -339,18 +388,19 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             IsFromActualFile = File.Exists(OriginalFilePath);
             RootNode = JsonObjectVM.CreateRootNode(this, rootNode);
 
+            // get the locale id
             var extensionStartPos = FileName.IndexOf(".loc.json");
             if (extensionStartPos != 2)
             {
                 FLog.Error($"Translation config \"{filePath}\" is invalid; filename \"{FileName}\" is not in the correct format.");
-                _fileNameLanguageCode = null!;
+                LocaleID = null!;
             }
             else
             {
-                _fileNameLanguageCode = FileName[..2];
+                LocaleID = FileName[..2];
             }
 
-            // get the language name & id
+            // get the language name & display name, and remove the node
             var languageNameNode = RootNode.SubNodes.FirstOrDefault();
             if (languageNameNode == null)
             {
@@ -364,8 +414,8 @@ namespace VolumeControl.LocalizationUtil.ViewModels
                 }
                 else
                 {
-                    LanguageID = languageNameValue.Name!;
-                    LanguageName = languageNameValue.Content!;
+                    _languageID = languageNameValue.Name!;
+                    LanguageDisplayName = languageNameValue.Content!;
                 }
                 RootNode.SubNodes.Remove(languageNameNode);
             }
@@ -374,52 +424,145 @@ namespace VolumeControl.LocalizationUtil.ViewModels
 
         #region Properties
         public string FileName { get; set; }
-        public string FileNameLanguageCode
-        {
-            get => _fileNameLanguageCode;
-            set
-            {
-                if (value.Length > 2)
-                    _fileNameLanguageCode = value[..2];
-                else if (value.Length <= 2)
-                    _fileNameLanguageCode = value;
-                NotifyPropertyChanged();
-            }
-        }
-        private string _fileNameLanguageCode;
+        public string LocaleID { get; set; }
         public string OriginalFilePath { get; }
+        public string NewFilePath { get; set; } = string.Empty;
+        public bool IndentOutput { get; set; } = true;
         public string? DirectoryPath { get; }
         /// <summary>
         /// Gets whether this instance was loaded from an actual file in the filesystem or just from serialized json data.
         /// </summary>
         public bool IsFromActualFile { get; }
         public JsonObjectVM RootNode { get; }
-        public string LanguageID { get; set; } = string.Empty;
-        public string LanguageName { get; set; } = string.Empty;
+        /// <summary>
+        /// Gets or sets the language name used as the key for all translation strings.
+        /// </summary>
+        public string LanguageName
+        {
+            get => _languageID;
+            set
+            {
+                _languageID = value.Trim();
+                NotifyPropertyChanged();
+
+                SetLanguageNameRecursively(RootNode, _languageID);
+            }
+        }
+        private string _languageID = string.Empty;
+        /// <summary>
+        /// Gets or sets the language display name shown in the UI.
+        /// </summary>
+        public string LanguageDisplayName { get; set; } = string.Empty;
         #endregion Properties
 
         #region Methods
 
+        #region SetLanguageNameRecursively
+        /// <summary>
+        /// Recursively sets the language name of all values in the specified <paramref name="node"/> and all of its subnodes.
+        /// </summary>
+        private static void SetLanguageNameRecursively(JsonObjectVM node, string languageName)
+        {
+            foreach (var valueVM in node.Values)
+            {
+                valueVM.Name = languageName;
+            }
+            foreach (var subNode in node.SubNodes)
+            {
+                SetLanguageNameRecursively(subNode, languageName); //< RECURSE
+            }
+        }
+        #endregion SetLanguageNameRecursively
+
         #region SaveToFile
-        private JsonObjectVM PackRootNodeForSerialization()
+        public static bool SaveToFile(TranslationConfigVM inst, string path, Formatting formatting)
         {
-            return RootNode;
-        }
-        public void SaveToFile()
-        {
-            if (!IsFromActualFile) return;
+            string serialized;
+            try
+            {
+                serialized = JsonConvert.SerializeObject(inst, Formatting.Indented);
+            }
+            catch (Exception ex)
+            {
+                FLog.Error($"An exception occurred while serializing config \"{inst.FileName}\"{(inst.IsFromActualFile ? $" ({inst.OriginalFilePath})" : "")}:", ex);
+#if DEBUG
+                throw;
+#else
+                return false;
+#endif
+            }
 
-            var rootNodeCopy = RootNode;
-            rootNodeCopy.Values.Insert(0, new JsonValueVM(RootNode, LanguageID, LanguageName));
-
-            // TODO
+            try
+            {
+                File.WriteAllText(path, serialized, Encoding.UTF8);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                FLog.Error($"Failed to write translation config \"{inst.FileName}\"{(inst.IsFromActualFile ? $" ({inst.OriginalFilePath})" : "")} to \"{path}\" due to an exception:", ex);
+#if DEBUG
+                throw;
+#else
+                return false;
+#endif
+            }
         }
+        public bool SaveToFile()
+            => SaveToFile(this, NewFilePath, IndentOutput ? Formatting.Indented : Formatting.None);
         #endregion SaveToFile
 
-        #region ReloadFromFile
-        public void ReloadFromFile()
+        #region OverwriteFile
+        /// <summary>
+        /// Saves this <see cref="TranslationConfigVM"/> instance to the original file it was loaded from, overwriting it.
+        /// </summary>
+        public bool OverwriteFile()
         {
-            // TODO
+            if (!IsFromActualFile)
+                throw new InvalidOperationException($"Cannot save translation config \"{FileName}\" to original file because it is not backed by an actual file!");
+
+            return SaveToFile(this, OriginalFilePath, IndentOutput ? Formatting.Indented : Formatting.None);
+        }
+        #endregion OverwriteFile
+
+        #region ReloadFromFile
+        public bool ReloadFromFile()
+        {
+            if (!IsFromActualFile)
+                throw new InvalidOperationException($"Cannot reload translation config \"{FileName}\" from file because it is not backed by an actual file!");
+            // read the file contents
+            string content;
+            try
+            {
+                content = File.ReadAllText(OriginalFilePath);
+            }
+            catch (Exception ex)
+            {
+                FLog.Error($"An exception occurred while reading file \"{OriginalFilePath}\":", ex);
+#if DEBUG
+                throw;
+#else
+                return false;
+#endif
+            }
+            // deserialize the file contents into a new instance
+            TranslationConfigVM newInst;
+            try
+            {
+                newInst = new(OriginalFilePath, (JObject)JsonConvert.DeserializeObject(content!)!);
+            }
+            catch (Exception ex)
+            {
+                FLog.Error($"An exception occurred while deserializing file \"{OriginalFilePath}\":", ex);
+#if DEBUG
+                throw;
+#else
+                return false;
+#endif
+            }
+            // copy the new instance's properties into this instance
+            var mapper = new UltraMapper.Mapper();
+            mapper.Map(newInst, this);
+            return true;
         }
         #endregion ReloadFromFile
 
@@ -453,5 +596,26 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         #endregion FindNode
 
         #endregion Methods
+    }
+    public class CustomCommand : ICommand
+    {
+        public CustomCommand(Action<object?> executed, Func<object?, bool> canExecute)
+        {
+            _executed = executed;
+            _canExecute = canExecute;
+        }
+        public CustomCommand(Action<object?> executed)
+        {
+            _executed = executed;
+            _canExecute = o => true;
+        }
+
+        private readonly Action<object?> _executed;
+        private readonly Func<object?, bool> _canExecute;
+
+        public event EventHandler? CanExecuteChanged;
+
+        public bool CanExecute(object? parameter) => _canExecute(parameter);
+        public void Execute(object? parameter) => _executed(parameter);
     }
 }

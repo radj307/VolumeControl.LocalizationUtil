@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,7 +22,7 @@ namespace VolumeControl.LocalizationUtil
             InitializeComponent();
 
             VM = (MainWindowVM)FindResource(nameof(VM));
-            VM.PathBoxVM.AttachToMainWindow(this);
+            VM.AttachToMainWindow(this);
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -117,9 +119,56 @@ namespace VolumeControl.LocalizationUtil
         {
             var button = (Button)sender;
             var configVM = (TranslationConfigVM)button.DataContext;
-            configVM.SaveToFile();
+
+            if (MessageBoxResult.OK == MessageBox.Show($"This will overwrite the original file:\n{configVM.OriginalFilePath}\nMake sure you're sure before you continue!", "Are you sure?", MessageBoxButton.OKCancel, MessageBoxImage.Question))
+            {
+                configVM.OverwriteFile();
+            }
+            else
+            {
+                MessageBox.Show("The original file was not overwritten.", "Cancelled");
+            }
         }
         #endregion ConfigSaveButton
+
+        #region ConfigLocaleIDTextBox
+        private void ConfigLocaleIDTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if ((e.Key < Key.A || e.Key > Key.Z)
+                && e.Key != Key.Left
+                && e.Key != Key.Right
+                && e.Key != Key.Back
+                && e.Key != Key.LeftCtrl
+                && e.Key != Key.RightCtrl)
+                e.Handled = true;
+        }
+        #endregion ConfigLocaleIDTextBox
+
+        #region SaveToNewFilePathButton
+        private void SaveToNewFilePathButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var configVM = (TranslationConfigVM)button.DataContext;
+
+            if (File.Exists(configVM.NewFilePath))
+            {
+                if (MessageBoxResult.Cancel == MessageBox.Show("A file already exists at this location, are you sure you want to overwrite it? (This cannot be undone!)", "Are you sure?", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation))
+                {
+                    MessageBox.Show("The file was not overwritten.", "Cancelled");
+                    return;
+                }
+            }
+
+            if (configVM.SaveToFile())
+            { // open the file in a text editor
+                try
+                {
+                    Process.Start(new ProcessStartInfo(configVM.NewFilePath) { UseShellExecute = true })?.Dispose();
+                }
+                catch { }
+            }
+        }
+        #endregion SaveToNewFilePathButton
 
         #endregion EventHandlers
     }
