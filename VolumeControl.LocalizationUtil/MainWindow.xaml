@@ -1,0 +1,397 @@
+﻿<Window
+    x:Class="VolumeControl.LocalizationUtil.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:conv="clr-namespace:VolumeControl.WPF.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:loc="clr-namespace:CodingSeb.Localization;assembly=CodingSeb.Localization"
+    xmlns:local="clr-namespace:VolumeControl.LocalizationUtil"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:vm="clr-namespace:VolumeControl.LocalizationUtil.ViewModels"
+    xmlns:wpfBehaviors="clr-namespace:VolumeControl.WPF.Behaviors"
+    Title="Volume Control Translation Config Editor"
+    Width="800"
+    Height="450"
+    DataContext="{Binding RelativeSource={RelativeSource Self}}"
+    Loaded="Window_Loaded"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <ResourceDictionary>
+            <!--  Converters  -->
+            <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+            <conv:ConverterChain x:Key="InvertedBoolToVisConverter">
+                <conv:BooleanInverter />
+                <BooleanToVisibilityConverter />
+            </conv:ConverterChain>
+            <conv:ConverterChain x:Key="NullToVisConverter">
+                <conv:NullToBooleanConverter />
+                <BooleanToVisibilityConverter />
+            </conv:ConverterChain>
+
+            <SolidColorBrush x:Key="SelectionBackground">#605F</SolidColorBrush>
+
+            <vm:MainWindowVM x:Key="VM" />
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="6" DataContext="{Binding Source={StaticResource VM}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  Row 0 ; FileLoader  -->
+        <Grid DataContext="{Binding FileLoader}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                Margin="5,3"
+                FontWeight="SemiBold"
+                Text="Filepath:" />
+            <TextBox
+                Grid.Column="1"
+                Margin="5,3"
+                Text="{Binding FilePath, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            <Button
+                x:Name="ChooseFileButton"
+                Grid.Column="2"
+                Margin="3"
+                Padding="6,0"
+                Click="ChooseFileButton_Click"
+                Content="Choose File" />
+            <Button
+                x:Name="LoadFileButton"
+                Grid.Column="3"
+                Margin="3"
+                Padding="6,0"
+                Click="LoadFileButton_Click"
+                Content="Load File"
+                IsEnabled="{Binding FileExists}"
+                ToolTipService.InitialShowDelay="100">
+                <Button.Style>
+                    <Style TargetType="{x:Type Button}">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="ToolTip" Value="Specified file doesn't exist!" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+
+        <!--  Row 1 ; Editor TreeView  -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox
+                x:Name="PathBox"
+                Grid.ColumnSpan="3"
+                Margin="5,3,5,1"
+                Padding="4,1.3" />
+
+            <TreeView
+                x:Name="TreeView"
+                Grid.Row="1"
+                Margin="5,3"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ItemsSource="{Binding TranslationConfigs}">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="FontWeight" Value="Bold" />
+                                <Setter Property="Background" Value="{StaticResource SelectionBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter Property="Foreground" Value="#F505" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type vm:TranslationConfigVM}" ItemsSource="{Binding RootNode.SubNodes}">
+                        <TextBlock Text="{Binding FileName}" />
+                    </HierarchicalDataTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type vm:JsonObjectVM}" ItemsSource="{Binding SubNodes}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="{Binding Name}" />
+                            <ItemsControl
+                                Grid.Row="1"
+                                IsTabStop="False"
+                                ItemsSource="{Binding Values}" />
+                        </Grid>
+                    </HierarchicalDataTemplate>
+                    <DataTemplate DataType="{x:Type vm:JsonValueVM}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Margin="5,0" Text="{Binding Name}" />
+                            <TextBlock
+                                Grid.Column="1"
+                                Margin="5,0"
+                                Text="{Binding Content}" />
+                        </Grid>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:JsonErrorVM}">
+                        <TextBlock Foreground="Red" Text="[ERROR]" />
+                    </DataTemplate>
+                </TreeView.Resources>
+            </TreeView>
+
+            <GridSplitter
+                Grid.Row="1"
+                Grid.Column="1"
+                Width="3"
+                HorizontalAlignment="Center"
+                Background="LightGray"
+                BorderBrush="Black"
+                BorderThickness="1" />
+
+            <Grid
+                Grid.Row="1"
+                Grid.Column="2"
+                HorizontalAlignment="Stretch">
+                <Border
+                    Margin="5,3"
+                    BorderBrush="{x:Static SystemColors.ActiveBorderBrush}"
+                    BorderThickness="1">
+                    <ContentControl
+                        x:Name="EditorControl"
+                        HorizontalAlignment="Stretch"
+                        Content="{Binding SelectedItem, ElementName=TreeView}">
+                        <ContentControl.Resources>
+                            <DataTemplate DataType="{x:Type vm:TranslationConfigVM}">
+                                <DockPanel>
+                                    <Grid VerticalAlignment="Top" DockPanel.Dock="Top">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Margin="5,3">
+                                            <Run FontWeight="Bold" Text="(Config)" />
+                                            <Run Text="{Binding OriginalFilePath, Mode=OneWay}" />
+                                        </TextBlock>
+
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Margin="5,3"
+                                            Visibility="{Binding IsFromActualFile, Converter={StaticResource BoolToVisConverter}}">
+                                            <Run FontWeight="SemiBold" Text="Location:" />
+                                            <Run Text="{Binding DirectoryPath, Mode=OneWay}" />
+                                        </TextBlock>
+
+                                        <Grid Grid.Row="2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock
+                                                Margin="5,3"
+                                                VerticalAlignment="Center"
+                                                Text="FileName:" />
+                                            <TextBox
+                                                Grid.Column="1"
+                                                Width="20"
+                                                Margin="5,3"
+                                                Text="{Binding FileNameLanguageCode}" />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                VerticalAlignment="Center"
+                                                Text=".loc.json" />
+                                        </Grid>
+
+                                        <Grid Grid.Row="3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition />
+                                                <RowDefinition />
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock
+                                                Margin="5,3"
+                                                VerticalAlignment="Center"
+                                                Text="Language ID" />
+                                            <TextBox
+                                                Grid.Column="1"
+                                                Margin="5,3"
+                                                Text="{Binding LanguageID}" />
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Margin="5,3"
+                                                VerticalAlignment="Center"
+                                                Text="Language Name" />
+                                            <TextBox
+                                                Grid.Row="1"
+                                                Grid.Column="1"
+                                                Margin="5,3"
+                                                Text="{Binding LanguageName}" />
+                                        </Grid>
+                                    </Grid>
+                                    <Grid
+                                        Height="30"
+                                        VerticalAlignment="Bottom"
+                                        DockPanel.Dock="Bottom"
+                                        IsEnabled="{Binding IsFromActualFile}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Button
+                                            x:Name="ConfigSaveButton"
+                                            Margin="5,3"
+                                            Click="ConfigSaveButton_Click"
+                                            Content="Save" />
+                                        <Button
+                                            x:Name="ConfigLoadButton"
+                                            Grid.Column="1"
+                                            Margin="5,3"
+                                            Click="ConfigLoadButton_Click"
+                                            Content="Load" />
+                                    </Grid>
+                                </DockPanel>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:JsonValueVM}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock
+                                        Margin="5,3"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding Name}" />
+                                    <TextBox
+                                        Grid.Column="1"
+                                        Margin="5,3"
+                                        Padding="3,1"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding Content}" />
+                                </Grid>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:JsonObjectVM}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Margin="5,3">
+                                        <Run FontWeight="Bold" Text="(Object)" />
+                                        <Run Text="{Binding Name, Mode=OneWay}" />
+                                    </TextBlock>
+
+                                    <ListBox
+                                        x:Name="ValueEditorListBox"
+                                        Grid.Row="1"
+                                        HorizontalAlignment="Stretch"
+                                        ItemsSource="{Binding Values}">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="{x:Type ListBoxItem}">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                                            <Border>
+                                                                <Border.Style>
+                                                                    <Style TargetType="{x:Type Border}">
+                                                                        <Style.Triggers>
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter Property="Background" Value="{StaticResource SelectionBackground}" />
+                                                                            </Trigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <Grid>
+                                                                    <ContentPresenter />
+                                                                </Grid>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                    </ListBox>
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Margin="10"
+                                        Text="(none)"
+                                        Visibility="{Binding HasItems, ElementName=ValueEditorListBox, Converter={StaticResource InvertedBoolToVisConverter}}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ContentControl.Resources>
+                    </ContentControl>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!--  Row 2 ; Debug/Testing  -->
+        <Border
+            Grid.Row="2"
+            Margin="5,0"
+            Padding="3"
+            Background="#950F"
+            Visibility="{Binding EnableDebugOptions, Mode=OneWay, Converter={StaticResource BoolToVisConverter}}">
+            <StackPanel Orientation="Horizontal">
+                <Button
+                    x:Name="AddTestConfigsButton"
+                    Margin="5,3"
+                    Click="AddTestConfigsButton_Click"
+                    Content="Add Test Configs" />
+                <Button
+                    x:Name="DeselectAllTreeViewItemsButton"
+                    Margin="5,3"
+                    Click="DeselectAllTreeViewItemsButton_Click"
+                    Content="Deselect All TreeView Items" />
+                <Button
+                    x:Name="CollapseAllTreeViewItemsButton"
+                    Margin="5,3"
+                    Click="CollapseAllTreeViewItemsButton_Click"
+                    Content="Collapse All TreeView Items" />
+                <CheckBox
+                    x:Name="ToggleRecursionCheckBox"
+                    Margin="5,3"
+                    VerticalAlignment="Center"
+                    Content="Use Recursion"
+                    IsChecked="{Binding UseRecursion, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

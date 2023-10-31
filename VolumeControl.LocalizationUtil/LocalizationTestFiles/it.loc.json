@@ -1,0 +1,595 @@
+{
+  "LanguageName": {
+    "Italiano (Italian)": "Italiano"
+  },
+  "VolumeControl": {
+    "MainWindow": {
+      "CaptionBar": {
+        "Title": {
+          "Content": {
+            "Italiano (Italian)": "Volume Control"
+          }
+        },
+        "BugReport": {
+          "Content": {
+            "Italiano (Italian)": "✏"
+          },
+          "Tooltip": {
+            "Italiano (Italian)": "Segnala un bug"
+          }
+        }
+      },
+      "Mixer": {
+        "TabHeader": {
+          "Italiano (Italian)": "Mixer"
+        },
+        "TargetBox": {
+          "Watermark": {
+            "Italiano (Italian)": "ID processo o nome"
+          },
+          "LockTarget": {
+            "Italiano (Italian)": "Blocca"
+          }
+        },
+        "MixerGrid": {
+          "Selected": {
+            "Header": {
+              "Tooltip": {
+                "Italiano (Italian)": "Deseeleziona tutte le sessioni."
+              }
+            }
+          },
+          "PID": {
+            "Header": {
+              "Italiano (Italian)": "PID"
+            }
+          },
+          "Name": {
+            "Header": {
+              "Italiano (Italian)": "Nome"
+            }
+          },
+          "Mute": {
+            "Header": {
+              "Italiano (Italian)": "Audio OFF"
+            }
+          },
+          "Volume": {
+            "Header": {
+              "Italiano (Italian)": "Volume"
+            }
+          },
+          "Select": {
+            "Button": {
+              "Italiano (Italian)": "Seleziona"
+            }
+          }
+        }
+      },
+      "Hotkeys": {
+        "TabHeader": {
+          "Italiano (Italian)": "Tasti rapidi"
+        },
+        "ControlRow": {
+          "VolumeStep": {
+            "Content": {
+              "Italiano (Italian)": "Step volume"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Questo è il numero di 'step' del volume che cambiano ogni volta che si premono i tasti di scelta rapida del volume su o giù."
+            }
+          },
+          "ResetToDefault": {
+            "Content": {
+              "Italiano (Italian)": "Ripristina predefiniti"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Ripristina tutti i tasti scelta rapida alle impostazioni predefinite."
+            }
+          }
+        },
+        "HotkeyGrid": {
+          "Active": {
+            "Header": {
+              "Tooltip": {
+                "Italiano (Italian)": "Questo (annulla) la registrazione di tutti i tasti di scelta rapida nell'elenco."
+              }
+            }
+          },
+          "Name": {
+            "Header": {
+              "Italiano (Italian)": "Nome"
+            }
+          },
+          "Key": {
+            "Header": {
+              "Italiano (Italian)": "Chiave"
+            }
+          },
+          "Alt": {
+            "Header": {
+              "Italiano (Italian)": "Alt"
+            }
+          },
+          "Ctrl": {
+            "Header": {
+              "Italiano (Italian)": "Ctrl"
+            }
+          },
+          "Shift": {
+            "Header": {
+              "Italiano (Italian)": "Maiusc"
+            }
+          },
+          "Windows": {
+            "Header": {
+              "Italiano (Italian)": "Win"
+            }
+          },
+          "Action": {
+            "Header": {
+              "Italiano (Italian)": "Azione"
+            }
+          }
+        },
+        "CreateNewHotkeyButton": {
+          "Content": {
+            "Italiano (Italian)": "Crea nuovo tasto rapido"
+          },
+          "Tooltip": {
+            "Italiano (Italian)": "Crea un nuovo tasto di scelta rapida vuoto."
+          }
+        }
+      },
+      "Settings": {
+        "TabHeader": {
+          "Italiano (Italian)": "Impostazioni"
+        },
+        "Language": {
+          "Header": {
+            "Italiano (Italian)": "Lingua"
+          },
+          "CustomLocations": {
+            "Italiano (Italian)": "Percorso personalizzato"
+          },
+          "Reload": {
+            "Content": {
+              "Italiano (Italian)": "Ricarica"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Ricarica tutti i file di configurazione della lingua dal disco."
+            }
+          }
+        },
+        "Audio": {
+          "Header": {
+            "Italiano (Italian)": "Audio"
+          },
+          "AdditionalSettings": {
+            "Header": {
+              "Content": {
+                "Italiano (Italian)": "Impostazioni aggiuntive"
+              },
+              "Tooltip": {}
+            },
+            "ShowPeakMeters": {
+              "Content": {
+                "Italiano (Italian)": "Visualizza misuratori picco"
+              },
+              "Tooltip": {
+                "Italiano (Italian)": "Attiva/disattiva misuratori picco audio nel mixer."
+              }
+            },
+            "UpdateInterval": {
+              "Content": {
+                "Italiano (Italian)": "Intervallo aggiornamento"
+              },
+              "Tooltip": {
+                "Italiano (Italian)": "La quantità di tempo, in millisecondi, tra ogni aggiornamento dei misuratori picco nel mixer."
+              }
+            },
+            "EnableDeviceControl": {
+              "Content": {
+                "Italiano (Italian)": "Visualizza controlli dispositivo"
+              },
+              "Tooltip": {
+                "Italiano (Italian)": "Attiva/disattiva visualizzazione controlli volume e muto nella sezione Dispositivi audio."
+              }
+            }
+          },
+          "DeviceGrid": {
+            "Enabled": {
+              "Header": {
+                "Tooltip": {
+                  "Italiano (Italian)": "Qui puoi includere o escludere dispositivi audio specifici."
+                }
+              },
+              "Tooltip": {
+                "Italiano (Italian)": "Qui puoi includere o escludere dispositivi specifici."
+              }
+            },
+            "Name": {
+              "Header": {
+                "Italiano (Italian)": "Nome dispositivo"
+              }
+            },
+            "Interface": {
+              "Header": {
+                "Italiano (Italian)": "Nome interfaccia"
+              }
+            },
+            "Mute": {
+              "Header": {
+                "Italiano (Italian)": "Audio off"
+              }
+            },
+            "Volume": {
+              "Header": {
+                "Italiano (Italian)": "Volume"
+              }
+            }
+          }
+        },
+        "Notifications": {
+          "Header": {
+            "Italiano (Italian)": "Notifiche"
+          },
+          "AdditionalSettings": {
+            "Header": {
+              "Content": {
+                "Italiano (Italian)": "Impostazioni aggiuntive"
+              },
+              "Tooltip": {}
+            },
+            "ResetPosition": {
+              "Content": {
+                "Italiano (Italian)": "Ripristina Posizione"
+              },
+              "Tooltip": {
+                "Italiano (Italian)": "Reimpostare la posizione della notifica dell'elenco nel caso in cui scompaia dal riquadro di visualizzazione."
+              }
+            },
+            "ForceHide": {
+              "Content": {
+                "Italiano (Italian)": "Nascondere"
+              },
+              "Tooltip": {
+                "Italiano (Italian)": "Forza la scomparsa della finestra di notifica."
+              }
+            },
+            "HiddenSessions": {
+              "Content": {
+                "Italiano (Italian)": "Nascondi sessioni"
+              },
+              "Tooltip": {}
+            }
+          },
+          "Enable": {
+            "Content": {
+              "Italiano (Italian)": "Abilita"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Attiva/disattiva la visualizzazione delle notifiche quando si cambia la sessione destinazione."
+            }
+          },
+          "OnVolumeChange": {
+            "Content": {
+              "Italiano (Italian)": "Al cambio di volume"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Quando questa opzione è selezionata, vengono visualizzate anche le notifiche quando viene modificato il livello del volume destinazione."
+            }
+          },
+          "Timeout": {
+            "Content": {
+              "Italiano (Italian)": "Timeout"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "La quantità di tempo in millisecondi durante la quale le notifiche rimarranno visibili dopo essere state attivate."
+            }
+          },
+          "SessionListNotificationConfig": {
+            "Header": {
+              "Content": {
+                "Italiano (Italian)": "Opzioni notifica sessioni"
+              },
+              "Tooltip": {}
+            }
+          },
+          "DeviceListNotificationConfig": {
+            "Header": {
+              "Content": {
+                "Italiano (Italian)": "Opzioni notifica dispositivo"
+              },
+              "Tooltip": {}
+            }
+          }
+        },
+        "Log": {
+          "Header": {
+            "Italiano (Italian)": "Registrazione eventi"
+          },
+          "Enable": {
+            "Content": {
+              "Italiano (Italian)": "Abilita"
+            }
+          },
+          "Filter": {
+            "Text": {
+              "Italiano (Italian)": "Filtro"
+            }
+          },
+          "Path": {
+            "Tooltip": {
+              "Italiano (Italian)": "Specifica il percorso ed il nome del file di registro.\nI percorsi relativi sono relativi al percorso dell'eseguibile."
+            },
+            "WatermarkText": {
+              "Italiano (Italian)": "Percorso file registro"
+            }
+          }
+        },
+        "Application": {
+          "Header": {
+            "Italiano (Italian)": "Applicazione"
+          },
+          "RunAtStartup": {
+            "Content": {
+              "Italiano (Italian)": "Esegui all'avvio del sistema"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Quando abilitato, il controllo del volume verrà eseguito all'accesso del sistema."
+            },
+            "AltTooltip": {
+              "Italiano (Italian)": "Un'altra istanza di Controllo volume è impostata per essere eseguita all'avvio.\nLa modifica di questo lo sostituirà."
+            }
+          },
+          "StartMinimized": {
+            "Content": {
+              "Italiano (Italian)": "Avvia minimizzato"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Quando abilitato, il controllo del volume verrà minimizzato dopo l'esecuzione."
+            }
+          },
+          "MultiInstance": {
+            "Content": {
+              "Italiano (Italian)": "Multi-Istanza"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Consenti l'esecuzione simultanea di più istanze di Volume Control, a condizione che utilizzino un file di configurazione diverso."
+            }
+          },
+          "ShowInTaskbar": {
+            "Content": {
+              "Italiano (Italian)": "Visualizza nella barra sistema"
+            },
+            "Tooltip": {}
+          },
+          "AlwaysOnTop": {
+            "Content": {
+              "Italiano (Italian)": "Sempre in primo piano"
+            },
+            "Tooltip": {}
+          },
+          "ShowIcons": {
+            "Content": {
+              "Italiano (Italian)": "Visualizza icone"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Quando abilitato, il programma tenterà di visualizzare l'icona associata ai dispositivi audio e alle sessioni (alcune icone potrebbero mancare durante l'esecuzione come utente)."
+            }
+          },
+          "KeepRelativePosition": {
+            "Content": {
+              "Italiano (Italian)": "Mantieni posizione relativa"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Quando la dimensioen della finestra cambia mantieni la finestra principale nella stessa posizione rispetto all'angolo dello schermo più vicino "
+            }
+          }
+        },
+        "Updates": {
+          "Header": {
+            "Italiano (Italian)": "Aggiornamenti"
+          },
+          "CheckNow": {
+            "Content": {
+              "Italiano (Italian)": "Controlla ora"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Verifica manualmente la presenza di nuove versioni di Volume Control."
+            }
+          },
+          "OnStartup": {
+            "Content": {
+              "Italiano (Italian)": "All'avvio"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Verifica la presenza di nuove versioni di Volume Control all'avvio dell'applicazione."
+            }
+          },
+          "ShowPrompt": {
+            "Content": {
+              "Italiano (Italian)": "Visualizza prompt"
+            },
+            "Tooltip": {
+              "Italiano (Italian)": "Quando questo è selezionato, ti verrà chiesto di aggiornare sotto forma di messaggio in una finestra; in caso contrario, vedrai un'icona nell'angolo in alto a destra."
+            }
+          }
+        }
+      },
+      "About": {
+        "TabHeader": {
+          "Italiano (Italian)": "Info sul programma"
+        },
+        "ReportABug": {
+          "Content": {
+            "Italiano (Italian)": "Segnala un bug"
+          },
+          "Tooltip": {
+            "Italiano (Italian)": "Facci sapere se qualcosa non funziona correttamente"
+          }
+        },
+        "OpenWebsite": {
+          "Content": {
+            "Italiano (Italian)": "Sito web ufficiale"
+          },
+          "Tooltip": {
+            "Italiano (Italian)": "Apri il sito web ufficiale di Volume Control nel browser predefinito"
+          }
+        },
+        "ShowDebugInfo": {
+          "Header": {
+            "Content": {
+              "Italiano (Italian)": "Visualizza informazioni di debug"
+            },
+            "Tooltip": {}
+          },
+          "ConfigPath": {
+            "Content": {
+              "Italiano (Italian)": ""
+            },
+            "Tooltip": {
+              "Italiano (Italian)": ""
+            }
+          }
+        }
+      }
+    },
+
+    "ListNotification": {
+      "Options": {
+        "Header": {
+          "Italiano (Italian)": "Opzioni"
+        },
+        "ShowControls": {
+          "Content": {
+            "Italiano (Italian)": "Visualizza controlli"
+          },
+          "Tooltip": {
+            "Italiano (Italian)": "Attiva/disattiva visualizzazione controlli avanzati accanto agli elementi dell'elenco."
+          }
+        },
+        "DragRequiresAlt": {
+          "Content": {
+            "Italiano (Italian)": "Trascina richiede uso 'Alt'"
+          },
+          "Tooltip": {
+            "Italiano (Italian)": "Quando selezionato, il tasto ALT deve essere tenuto premuto per poter trascinare la finestra di notifica con il mouse."
+          }
+        },
+        "SavePosition": {
+          "Content": {
+            "Italiano (Italian)": "Salva posizione"
+          },
+          "Tooltip": {}
+        },
+        "DoFadeIn": {
+          "Content": {
+            "Italiano (Italian)": "Dissolvenza iniziale"
+          },
+          "Tooltip": {
+            "Italiano (Italian)": "Se selezionata, la finestra di notifica visualizza un'animazione dissolvenza iniziale invece di apparire istantaneamente."
+          }
+        },
+        "FadeInDuration": {
+          "Tooltip": {
+            "Italiano (Italian)": "Specifica la durata in millisecondi dell'animazione dissolvenza iniziale."
+          }
+        },
+        "DoFadeOut": {
+          "Content": {
+            "Italiano (Italian)": "Dissolvenza finale"
+          },
+          "Tooltip": {
+            "Italiano (Italian)": "Se selezionata, la finestra di notifica visualizza un'animazione dissolvenza finale invece di scomparire all'istante."
+          }
+        },
+        "FadeOutDuration": {
+          "Tooltip": {
+            "Italiano (Italian)": "Specifica la durata in millisecondi dell'animazione dissolvenza finale."
+          }
+        }
+      }
+    },
+
+    "ActionSettingsWindow": {
+      "DataTemplateErrorTextBlock": {
+        "Tooltip": {
+          "Italiano (Italian)": "Non è disponibile nessun ModelloDati per questo tipo di valore!"
+        }
+      },
+      "ToggleActionSetting": {
+        "Content": {
+          "Italiano (Italian)": "Abilita"
+        },
+        "Tooltip": {
+          "Italiano (Italian)": "Questa impostazione di azione è abilitata quando selezionata."
+        }
+      },
+      "ActionTargetSpecifierDataTemplate": {
+        "AddTargetBox": {
+          "DefaultText": {
+            "Italiano (Italian)": "Nome destinazione..."
+          }
+        }
+      }
+    },
+
+    "Dialogs": {
+      "AnotherInstanceIsRunning": {
+        "MultiInstance": {
+          "Italiano (Italian)": "Un'altra istanza di Volume Control utilizza il file di configurazione che si trova a '${PATH}'!"
+        },
+        "SingleInstance": {
+          "Italiano (Italian)": "È già in esecuzione un'altra istanza di Volume Control!"
+        }
+      },
+      "UpdatePrompt": {
+        "DontShowInFutureMsg": {
+          "Italiano (Italian)": "In futuro non verranno visualizzate le richieste di aggiornamento ."
+        },
+        "NewVersionAvailableFormatMsg": {
+          "Italiano (Italian)": "È disponibile una nuova versione di Volume Control!\nVuoi andare alla pagina di download?\nVersione attuale:  ${CURRENT_VERSION}\nVersioen aggiornata:   ${LATEST_VERSION}\n\nSeleziona 'Sì' per andare alla pagina di download.\nSeleziona 'No' se non vuoi aggiornare ora.\nSeleziona 'Annulla' per disabilitare questa richiesta."
+        }
+      },
+      "RemoveHotkey": {
+        "Message": {
+          "Italiano (Italian)": "Sei sicuro di voler eliminare il tasto scelta rapida ${ID}?\n\n- 'Sì' elimina il tasto scelta rapida.\n- 'No' non elimina il tasto scelta rapida.\n- 'Annulla' disabilita queste richieste di conferma in futuro (non elimina il tasto di scelta rapida).\n"
+        },
+        "Caption": {
+            "Italiano (Italian)": "Conferma rimozione"
+        }
+      },
+      "MultiInstanceChanged": {
+        "Message": {
+          "Italiano (Italian)": "Le modifiche all'impostazione Multiistanza avranno effetto dopo il riavvio del Controllo volume.\n\nVuoi riavviare l'applicazione adesso?"
+        },
+        "Caption": {
+          "Italiano (Italian)": "È necessario il riavvio dell'applicazione"
+        }
+      }
+    },
+
+    "NotifyIcon": {
+      "BringToFront": {
+        "Italiano (Italian)": "Porta in primo piano"
+      },
+      "Hide": {
+        "Italiano (Italian)": "Nascondi"
+      },
+      "Show": {
+        "Italiano (Italian)": "Visualizza"
+      },
+      "OpenLocation": {
+        "Italiano (Italian)": "Apri percorso"
+      },
+      "OpenAppData": {
+        "Italiano (Italian)": "Apri AppData"
+      },
+      "Close": {
+        "Italiano (Italian)": "Chiudi"
+      }
+    }
+  }
+}

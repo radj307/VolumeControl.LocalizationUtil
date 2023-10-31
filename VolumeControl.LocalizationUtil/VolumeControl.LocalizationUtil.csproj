@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <StartupObject>VolumeControl.LocalizationUtil.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="LocalizationTestFiles\de.loc.json" />
+    <None Remove="LocalizationTestFiles\en.loc.json" />
+    <None Remove="LocalizationTestFiles\fr.loc.json" />
+    <None Remove="LocalizationTestFiles\it.loc.json" />
+    <None Remove="LocalizationTestFiles\pt.loc.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="LocalizationTestFiles\de.loc.json" />
+    <EmbeddedResource Include="LocalizationTestFiles\en.loc.json" />
+    <EmbeddedResource Include="LocalizationTestFiles\fr.loc.json" />
+    <EmbeddedResource Include="LocalizationTestFiles\it.loc.json" />
+    <EmbeddedResource Include="LocalizationTestFiles\pt.loc.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CodingSeb.Localization" Version="1.3.0" />
+    <PackageReference Include="CodingSeb.Localization.JsonFileLoader" Version="1.3.0" />
+    <PackageReference Include="CodingSeb.Localization.WPF" Version="1.3.0" />
+    <PackageReference Include="CodingSeb.Localization.YamlFileLoader" Version="1.3.0" />
+    <PackageReference Include="Fody" Version="6.8.0">
+      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="WindowsAPICodePack" Version="7.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VolumeControl.Log\VolumeControl.Log.csproj" />
+  </ItemGroup>
+
+</Project>
