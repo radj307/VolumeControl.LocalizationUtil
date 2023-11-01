@@ -229,7 +229,16 @@ namespace VolumeControl.LocalizationUtil.Helpers.Collections
 
         #endregion Nested Types
     }
-    public class ObservableImmutableList<T> : ObservableCollectionObject, IList, ICollection, IEnumerable, IList<T>, IImmutableList<T>, ICollection<T>, IEnumerable<T>, IReadOnlyList<T>, IReadOnlyCollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
+    public interface IObservableImmutableReadOnlyList<T> : IReadOnlyList<T>, IEnumerable<T>, IEnumerable, INotifyCollectionChanged, INotifyPropertyChanged
+    {
+        /// <summary>
+        /// Determines the index of the specified <paramref name="item"/> in the <see cref="IObservableImmutableReadOnlyList{T}"/>.
+        /// </summary>
+        /// <param name="item">The object to locate in the <see cref="IObservableImmutableReadOnlyList{T}"/>.</param>
+        /// <returns>The index of <paramref name="item"/> if found in the list; otherwise, -1.</returns>
+        int IndexOf(T item);
+    }
+    public class ObservableImmutableList<T> : ObservableCollectionObject, IObservableImmutableReadOnlyList<T>, IList, ICollection, IEnumerable, IList<T>, IImmutableList<T>, ICollection<T>, IEnumerable<T>, IReadOnlyList<T>, IReadOnlyCollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
     {
         #region Private
         private ImmutableList<T> _items;

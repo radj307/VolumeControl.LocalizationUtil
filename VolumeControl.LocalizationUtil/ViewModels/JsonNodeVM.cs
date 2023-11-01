@@ -29,7 +29,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         protected JsonNodeVM(JsonNodeVM parent, string name, JToken jToken) : base(parent)
         {
             _token = jToken;
-            Name = name;
+            _name = name;
 
             Parent = parent;
             Owner = parent.Owner;
@@ -44,7 +44,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             IsRootNode = true;
 
             _token = rootObject;
-            Name = null;
+            _name = null!;
 
             Parent = null;
             Owner = owner;
@@ -54,14 +54,31 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         #region Fields
         protected readonly JToken _token;
         public readonly bool IsRootNode;
-        public const char NodePathSeparatorChar = '/';
+        public const string NodeRootSeparatorString = "/";
+        public const char NodePathSeparatorChar = '.';
         #endregion Fields
 
         #region Properties
         public TranslationConfigVM Owner { get; }
         public JsonNodeVM? Parent { get; }
-        public string? Name { get; set; }
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                var oldName = _name;
+                _name = value;
+                NotifyNameChanged(oldName, _name);
+                NotifyPropertyChanged();
+            }
+        }
+        private string _name;
         #endregion Properties
+
+        #region Events
+        public event EventHandler<(string OldName, string NewName)>? NameChanged;
+        private void NotifyNameChanged(string oldName, string newName) => NameChanged?.Invoke(this, (oldName, newName));
+        #endregion Events
 
         #region Methods
         internal JsonNodeVM CreateNode(string name, JToken? jToken)
@@ -89,7 +106,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             List<string> l = new();
             for (JsonNodeVM node = nodeVM; !node!.IsRootNode; node = node.Parent!)
             {
-                l.Add(node.Name!);
+                l.Add(node.Name);
             }
             l.Add(rootNodeName);
             l.Reverse();
@@ -97,7 +114,9 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             for (int i = 0, i_max = l.Count; i < i_max; ++i)
             {
                 sb.Append(l[i]);
-                if (i + 1 < i_max)
+                if (i == 0)
+                    sb.Append(NodeRootSeparatorString);
+                else if (i + 1 < i_max)
                     sb.Append(NodePathSeparatorChar);
             }
             return sb.ToString();
@@ -165,8 +184,10 @@ namespace VolumeControl.LocalizationUtil.ViewModels
 
         #region Properties
         public JObject JObject => (JObject)_token;
-        public ObservableImmutableList<JsonObjectVM> SubNodes { get; } = new();
-        public ObservableImmutableList<JsonNodeVM> Values { get; } = new();
+        public IObservableImmutableReadOnlyList<JsonObjectVM> SubNodes => _subNodes;
+        private readonly ObservableImmutableList<JsonObjectVM> _subNodes = new();
+        public IObservableImmutableReadOnlyList<JsonNodeVM> Values => _values;
+        private readonly ObservableImmutableList<JsonNodeVM> _values = new();
         #endregion Properties
 
         #region Methods
@@ -182,15 +203,15 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         #endregion CreateEmptyRootNode
 
         #region AddNode
-        public void AddNode(JsonNodeVM node)
+        private void AddNode(JsonNodeVM node)
         {
             if (node is JsonObjectVM objectVM)
             {
-                SubNodes.Add(objectVM);
+                _subNodes.Add(objectVM);
             }
             else
             {
-                Values.Add(node);
+                _values.Add(node);
             }
         }
         #endregion AddNode
@@ -199,7 +220,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         public JsonObjectVM CreateSubNode(string name)
         {
             var objectVM = new JsonObjectVM(this, name, new());
-            SubNodes.Add(objectVM);
+            _subNodes.Add(objectVM);
             return objectVM;
         }
         #endregion CreateSubNode
@@ -210,13 +231,13 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             if (subNodeIndex < 0 || subNodeIndex >= SubNodes.Count)
                 throw new ArgumentOutOfRangeException(nameof(subNodeIndex), subNodeIndex, $"The specified index {subNodeIndex} does not exist! Expected an index in range: (0 >= x < {SubNodes.Count - 1})");
 
-            SubNodes.RemoveAt(subNodeIndex);
+            _subNodes.RemoveAt(subNodeIndex);
         }
         public void RemoveSubNode(JsonObjectVM subNode)
         {
             ArgumentNullException.ThrowIfNull(subNode, nameof(subNode));
 
-            var index = SubNodes.IndexOf(subNode);
+            var index = _subNodes.IndexOf(subNode);
 
             if (index == -1)
                 throw new InvalidOperationException($"The specified sub node \"{subNode.Name}\" is not a child of this node \"{Name}\"!");
@@ -226,7 +247,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         public void RemoveSubNode(string subNodeName, StringComparison stringComparison = StringComparison.Ordinal)
         {
             var subNode = FindSubNodeWithName(subNodeName, stringComparison);
-            
+
             if (subNode == null)
                 throw new InvalidOperationException($"The specified sub node \"{subNodeName}\" is not a child of this node \"{Name}\"!");
 
@@ -239,12 +260,12 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         {
             if (subNodeIndex < 0 || subNodeIndex >= SubNodes.Count)
                 return false;
-            SubNodes.RemoveAt(subNodeIndex);
+            _subNodes.RemoveAt(subNodeIndex);
             return true;
         }
         public bool TryRemoveSubNode(JsonObjectVM subNode)
         {
-            var index = SubNodes.IndexOf(subNode);
+            var index = _subNodes.IndexOf(subNode);
 
             if (index == -1) return false;
 
@@ -264,18 +285,48 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         public JsonValueVM CreateValue(string content)
         {
             var valueVM = new JsonValueVM(this, Owner.LanguageName, content);
-            Values.Add(valueVM);
+            _values.Add(valueVM);
             return valueVM;
         }
         public JsonValueVM CreateValue() => CreateValue(string.Empty);
         #endregion CreateValue
+
+        #region RemoveValue
+        public void RemoveValue(int valueIndex)
+        {
+            if (valueIndex < 0 || valueIndex >= Values.Count)
+                throw new ArgumentOutOfRangeException(nameof(valueIndex), valueIndex, $"The specified index {valueIndex} does not exist! Expected an index in range: (0 >= x < {Values.Count - 1})");
+
+            _values.RemoveAt(valueIndex);
+        }
+        public void RemoveValue(JsonNodeVM value)
+        {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+
+            var index = _values.IndexOf(value);
+
+            if (index == -1)
+                throw new InvalidOperationException($"The specified value \"{value.Name}\" is not child of this node \"{Name}\"!");
+
+            RemoveValue(index);
+        }
+        public void RemoveValue(string valueName, StringComparison stringComparison = StringComparison.Ordinal)
+        {
+            var value = FindValueWithName(valueName, stringComparison);
+
+            if (value == null)
+                throw new InvalidOperationException($"The specified value \"{valueName}\" is not a child of this node \"{Name}\"!");
+
+            RemoveValue(value);
+        }
+        #endregion RemoveValue
 
         #region FindValueWithName
         public JsonNodeVM? FindValueWithName(string name, StringComparison stringComparison = StringComparison.Ordinal)
         {
             foreach (var value in Values)
             {
-                if (value.Name!.Equals(name, stringComparison))
+                if (value.Name.Equals(name, stringComparison))
                 {
                     return value;
                 }
@@ -289,7 +340,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         {
             foreach (var subNode in SubNodes)
             {
-                if (subNode.Name!.Equals(name, stringComparison))
+                if (subNode.Name.Equals(name, stringComparison))
                 {
                     return subNode;
                 }
@@ -320,7 +371,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         #endregion ToJObject
 
         #region ToJProperty
-        public override JProperty ToJProperty() => !IsRootNode ? new JProperty(Name!, ToJObject()) : throw new InvalidOperationException("Cannot serialize the root node as a JSON Property!");
+        public override JProperty ToJProperty() => !IsRootNode ? new JProperty(Name, ToJObject()) : throw new InvalidOperationException("Cannot serialize the root node as a JSON Property!");
         #endregion ToJProperty
 
         #endregion Methods
@@ -357,7 +408,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
         /// <summary>
         /// Creates a new <see cref="JProperty"/> instance containing the current state of this <see cref="JsonValueVM"/> instance.
         /// </summary>
-        public override JProperty ToJProperty() => new(Name!, Content);
+        public override JProperty ToJProperty() => new(Name, Content);
         #endregion ToJProperty
     }
     public class JsonErrorVM : JsonNodeVM
@@ -408,16 +459,16 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             }
             else
             {
-                if (languageNameNode.Values.FirstOrDefault() is not JsonValueVM languageNameValue)
+                if (languageNameNode.Values.Count == 0 || languageNameNode.Values[0] is not JsonValueVM languageNameValue)
                 {
-                    FLog.Error($"Translation config \"{filePath}\" is invalid; the first value of \"LanguageName\" must set the language ID & name!");
+                    FLog.Error($"Translation config \"{filePath}\" is invalid; the first value of \"LanguageName\" must set the language ID & Name");
                 }
                 else
                 {
-                    _languageID = languageNameValue.Name!;
+                    _languageID = languageNameValue.Name;
                     LanguageDisplayName = languageNameValue.Content!;
                 }
-                RootNode.SubNodes.Remove(languageNameNode);
+                RootNode.RemoveSubNode(languageNameNode);
             }
         }
         #endregion Constructor

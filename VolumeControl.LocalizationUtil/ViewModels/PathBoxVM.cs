@@ -108,6 +108,18 @@ namespace VolumeControl.LocalizationUtil.ViewModels
                 node.IsExpanded = false;
             }
         }
+        private string[] SplitPath(string path)
+        {
+            var rootSeparatorStartPos = path.IndexOf(JsonNodeVM.NodeRootSeparatorString, StringComparison.Ordinal);
+            var pathNames = path[(rootSeparatorStartPos + JsonNodeVM.NodeRootSeparatorString.Length)..].Split(JsonNodeVM.NodePathSeparatorChar, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var arr = new string[pathNames.Length + 1];
+            arr[0] = path[..rootSeparatorStartPos];
+            for (int i = 0, i_max = pathNames.Length; i < i_max; ++i)
+            {
+                arr[i] = pathNames[i];
+            }
+            return arr;
+        }
         private void SetNodeFromPath(string path)
         {
             // this has a bug where you can only successfully set the selected node when its tree hasn't been opened yet.
@@ -116,7 +128,7 @@ namespace VolumeControl.LocalizationUtil.ViewModels
             if (path == null || path.Length == 0 || TreeView.Items.Count == 0)
                 return;
 
-            var names = path.Split(JsonNodeVM.NodePathSeparatorChar, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var names = SplitPath(path);
 
             if (names.Length == 0) return;
 

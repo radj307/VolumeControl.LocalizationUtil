@@ -29,6 +29,11 @@
                 <conv:NullToBooleanConverter />
                 <BooleanToVisibilityConverter />
             </conv:ConverterChain>
+            <conv:ConverterChain x:Key="InvertedListHasItemsToBoolConverter">
+                <conv:ListHasItemsBooleanConverter />
+                <conv:BooleanInverter />
+            </conv:ConverterChain>
+            <conv:MultiBindingBooleanConverter x:Key="MultiBoolConverter" />
 
             <SolidColorBrush x:Key="SelectionBackground">#605F</SolidColorBrush>
 
@@ -36,15 +41,16 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Margin="6" DataContext="{Binding Source={StaticResource VM}}">
+    <Grid DataContext="{Binding Source={StaticResource VM}}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!--  Row 0 ; FileLoader  -->
-        <Grid DataContext="{Binding FileLoader}">
+        <Grid Margin="7,0" DataContext="{Binding FileLoader}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition />
@@ -53,9 +59,9 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock
-                Margin="5,3"
+                Margin="3,3,5,3"
                 FontWeight="SemiBold"
-                Text="Filepath:" />
+                Text="Load File:" />
             <TextBox
                 Grid.Column="1"
                 Margin="5,3"
@@ -88,8 +94,16 @@
             </Button>
         </Grid>
 
-        <!--  Row 1 ; Editor TreeView  -->
-        <Grid Grid.Row="1">
+        <!--  Row 1 ; Divider  -->
+        <Border
+            Grid.Row="1"
+            Height="1"
+            Margin="-5,0"
+            BorderBrush="{x:Static SystemColors.ActiveBorderBrush}"
+            BorderThickness="0.5" />
+
+        <!--  Row 2 ; Editor TreeView  -->
+        <Grid Grid.Row="2" Margin="5,3">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
@@ -100,13 +114,14 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <!--  PATHBOX  -->
             <TextBox
                 x:Name="PathBox"
                 Grid.ColumnSpan="3"
                 Margin="5,3,5,1"
                 Padding="4,1.3" />
 
-            <!--  NAVIGATOR  -->
+            <!--  NAVIGATOR TREEVIEW  -->
             <TreeView
                 x:Name="TreeView"
                 Grid.Row="1"
@@ -119,10 +134,14 @@
                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
 
+                        <EventSetter Event="KeyDown" Handler="TreeViewItem_KeyDown" />
+
                         <Style.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="FontWeight" Value="SemiBold" />
-                                <Setter Property="Background" Value="{StaticResource SelectionBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter Property="FontWeight" Value="Normal" />
                             </Trigger>
                             <Trigger Property="IsExpanded" Value="True">
                                 <Setter Property="Foreground" Value="#F505" />
@@ -132,7 +151,21 @@
                 </TreeView.ItemContainerStyle>
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type vm:TranslationConfigVM}" ItemsSource="{Binding RootNode.SubNodes}">
-                        <TextBlock Text="{Binding FileName}" />
+                        <Grid>
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem
+                                        Command="{Binding CreateNewSubNodeCommand, Source={StaticResource VM}}"
+                                        CommandParameter="{Binding}"
+                                        Header="New SubNode" />
+                                    <MenuItem
+                                        Command="{Binding UnloadConfigCommand, Source={StaticResource VM}}"
+                                        CommandParameter="{Binding}"
+                                        Header="Unload" />
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                            <TextBlock Text="{Binding FileName}" />
+                        </Grid>
                     </HierarchicalDataTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type vm:JsonObjectVM}" ItemsSource="{Binding SubNodes}">
                         <Grid>
@@ -141,7 +174,7 @@
                                     <MenuItem
                                         Command="{Binding CreateNewSubNodeCommand, Source={StaticResource VM}}"
                                         CommandParameter="{Binding}"
-                                        Header="New SubNode..." />
+                                        Header="New SubNode" />
                                     <MenuItem
                                         Command="{Binding DeleteNodeCommand, Source={StaticResource VM}}"
                                         CommandParameter="{Binding}"
@@ -201,7 +234,8 @@
                     <ContentControl
                         x:Name="EditorControl"
                         HorizontalAlignment="Stretch"
-                        Content="{Binding SelectedItem, ElementName=TreeView}">
+                        Content="{Binding SelectedItem, ElementName=TreeView}"
+                        IsTabStop="False">
                         <ContentControl.Resources>
                             <!--  TranslationConfigVM Editor Template  -->
                             <DataTemplate DataType="{x:Type vm:TranslationConfigVM}">
@@ -234,6 +268,7 @@
                                             Orientation="Horizontal">
                                             <TextBox
                                                 x:Name="ConfigLocaleIDTextBox"
+                                                MinWidth="12"
                                                 Margin="0,1,1,1"
                                                 MaxLength="2"
                                                 PreviewKeyDown="ConfigLocaleIDTextBox_PreviewKeyDown"
@@ -299,15 +334,26 @@
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition />
                                                 <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
                                             <TextBox
                                                 x:Name="NewFilePathTextBox"
                                                 Margin="5,3"
+                                                Padding="3,1"
+                                                VerticalContentAlignment="Center"
                                                 Text="{Binding NewFilePath, Mode=TwoWay}" />
                                             <Button
-                                                x:Name="SaveToNewFilePathButton"
+                                                x:Name="ChooseNewFilePathButton"
                                                 Grid.Column="1"
+                                                Margin="5,3"
+                                                Padding="3,1"
+                                                Click="ChooseNewFilePathButton_Click"
+                                                Content="🗁"
+                                                Tag="{Binding ElementName=NewFilePathTextBox}" />
+                                            <Button
+                                                x:Name="SaveToNewFilePathButton"
+                                                Grid.Column="2"
                                                 Margin="5,3"
                                                 Padding="6,1"
                                                 Click="SaveToNewFilePathButton_Click"
@@ -417,7 +463,9 @@
                                     </ListBox>
                                     <Grid
                                         Grid.Row="1"
+                                        Margin="3"
                                         VerticalAlignment="Top"
+                                        IsEnabled="{Binding SubNodes, Converter={StaticResource InvertedListHasItemsToBoolConverter}}"
                                         Visibility="{Binding HasItems, ElementName=ValueEditorListBox, Converter={StaticResource InvertedBoolToVisConverter}}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition />
@@ -441,14 +489,18 @@
             </Grid>
         </Grid>
 
-        <!--  Row 2 ; Debug/Testing  -->
+        <!--  Row 3 ; Debug/Testing  -->
         <Border
-            Grid.Row="2"
-            Margin="5,0"
+            Grid.Row="3"
             Padding="3"
             Background="#950F"
             Visibility="{Binding EnableDebugOptions, Mode=OneWay, Converter={StaticResource BoolToVisConverter}}">
             <StackPanel Orientation="Horizontal">
+                <TextBlock
+                    Margin="5,3"
+                    VerticalAlignment="Center"
+                    FontWeight="Bold"
+                    Text="DEBUG TOOLBAR" />
                 <Button
                     x:Name="AddTestConfigsButton"
                     Margin="5,3"

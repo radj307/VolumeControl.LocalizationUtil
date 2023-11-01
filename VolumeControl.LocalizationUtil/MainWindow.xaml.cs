@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace VolumeControl.LocalizationUtil
             var screenSize = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size;
             Left = screenSize.Width + 10;
             Top = screenSize.Height - ActualHeight - 100;
-            AddTestConfigsButton_Click(null, null);
+            AddTestConfigsButton_Click(null!, null!);
 #endif
         }
         #endregion Constructor
@@ -120,14 +121,12 @@ namespace VolumeControl.LocalizationUtil
             var button = (Button)sender;
             var configVM = (TranslationConfigVM)button.DataContext;
 
-            if (MessageBoxResult.OK == MessageBox.Show($"This will overwrite the original file:\n{configVM.OriginalFilePath}\nMake sure you're sure before you continue!", "Are you sure?", MessageBoxButton.OKCancel, MessageBoxImage.Question))
-            {
-                configVM.OverwriteFile();
-            }
-            else
+            if (File.Exists(configVM.OriginalFilePath) && MessageBoxResult.Cancel == MessageBox.Show($"This will overwrite the original file:\n{configVM.OriginalFilePath}\nMake sure you're sure before you continue!", "Are you sure?", MessageBoxButton.OKCancel, MessageBoxImage.Question))
             {
                 MessageBox.Show("The original file was not overwritten.", "Cancelled");
+                return;
             }
+            configVM.OverwriteFile();
         }
         #endregion ConfigSaveButton
 
@@ -135,6 +134,9 @@ namespace VolumeControl.LocalizationUtil
         private void ConfigLocaleIDTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if ((e.Key < Key.A || e.Key > Key.Z)
+                && e.Key != Key.Tab
+                && e.Key != Key.LeftShift
+                && e.Key != Key.RightShift
                 && e.Key != Key.Left
                 && e.Key != Key.Right
                 && e.Key != Key.Back
@@ -171,5 +173,44 @@ namespace VolumeControl.LocalizationUtil
         #endregion SaveToNewFilePathButton
 
         #endregion EventHandlers
+
+        private void ChooseNewFilePathButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var textBox = (TextBox)button.Tag;
+
+            var dialog = new CommonOpenFileDialog()
+            {
+                Title = "Select Translation Config File",
+                DefaultDirectory = Environment.CurrentDirectory,
+                DefaultExtension = ".json",
+                IsFolderPicker = false,
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureValidNames = true,
+                Multiselect = false,
+            };
+
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                textBox.Text = dialog.FileName ?? string.Empty;
+            }
+        }
+
+        private void TreeViewItem_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (!e.KeyboardDevice.IsKeyDown(Key.LeftCtrl) && !e.KeyboardDevice.IsKeyDown(Key.RightCtrl))
+                return;
+
+            var treeViewItem = (TreeViewItem)sender;
+            var node = treeViewItem.DataContext;
+
+            switch (e.Key)
+            {
+            case Key.Enter:
+                VM.CreateNewSubNodeCommand.Execute(node);
+                break;
+            }
+        }
     }
 }
